@@ -126,41 +126,36 @@ flowchart TD
 The system architecture is structured according to the **C4 Model** (Context, Container, Component, and Code).
 
 ### Level 1: System Context Diagram
-Shows how learners, students, and engineers interact with the platform to master Arduino Mega programming.
+High-level overview of users interacting with the ATmega2560 learning portal.
 
 ```mermaid
-C4Context
-    title C4 Level 1: System Context Diagram - Arduino codes made easy
+flowchart TD
+    user["👤 Web User<br/>(Learner / Embedded Engineer)"]
+    system["⚡ Arduino Codes Made Easy Platform<br/>(ATmega2560 Architecture & Code Hub)"]
+    datasheet["📖 Microchip ATmega2560 Datasheet & AVR Core Specifications"]
 
-    Person(user, "Arduino Learner / Engineer", "Explores ATmega2560 peripherals, analyzes library requirements, and tests Arduino codes.")
-    System(app_system, "Arduino Codes Made Easy System", "Provides interactive technical hardware guides, register specs, pinouts, and tested code examples for ATmega2560.")
-    System_Ext(arduino_ide, "Arduino IDE / CLI", "Used by learner to compile and upload the example Arduino sketches.")
-    System_Ext(hardware, "Arduino Mega 2560 Board", "Physical ATmega2560 target hardware running the generated firmware.")
-
-    Rel(user, app_system, "Explores peripherals, studies registers, copies Arduino code via web browser", "HTTPS")
-    Rel(user, arduino_ide, "Pastes code examples, compiles sketches", "Desktop UI")
-    Rel(arduino_ide, hardware, "Flashes hex binary via USB (avrdude)", "USB CDC Serial")
-    Rel(app_system, hardware, "Illustrates pinouts, registers, and timing for", "Hardware Reference")
+    user -->|"Interacts with UI / Explores Peripherals & Registers"| system
+    system -->|"References silicon specs & hardware register bitfields"| datasheet
 ```
 
 ---
 
 ### Level 2: Container Diagram
-Details the high-level technical containers: Streamlit frontend, FastAPI backend, PostgreSQL database, and Docker containerization.
+High-level technological boundaries separating Streamlit UI, FastAPI Backend, and Database.
 
 ```mermaid
-C4Container
-    title C4 Level 2: Container Diagram
+flowchart TD
+    user["👤 Web User<br/>(Learner / Embedded Engineer)"]
 
-    Person(user, "Web User", "Learner or embedded engineer accessing the educational portal.")
+    subgraph Platform["Arduino Codes Made Easy Platform"]
+        frontend["📱 Streamlit Frontend App<br/>(Python + Streamlit + CSS)<br/>Port 8501"]
+        backend["⚙️ FastAPI Backend API<br/>(Python + FastAPI + Uvicorn)<br/>Port 8000"]
+        database[("🗄️ Relational Database<br/>(PostgreSQL 16 / SQLite Fallback)")]
+    end
 
-    Container(frontend, "Streamlit Frontend", "Python, Streamlit, HTML/CSS", "Renders the interactive UI, peripheral sidebar selector, hardware specs, and Arduino code viewer.")
-    Container(backend, "FastAPI Backend API", "Python, FastAPI, Uvicorn", "Provides RESTful endpoints, orchestrates controllers, validates schemas, and handles business logic.")
-    ContainerDb(database, "Relational Database", "PostgreSQL 16 (or resilient SQLite fallback)", "Persists peripherals, detailed specifications, hardware registers, Arduino libraries, and code examples.")
-
-    Rel(user, frontend, "Interacts with UI", "HTTP / Browser (Port 8501)")
-    Rel(frontend, backend, "Queries peripherals, specs, and code examples", "REST / JSON (Port 8000)")
-    Rel(backend, database, "Executes SQL queries and transactional commits via SQLAlchemy", "TCP / Port 5432")
+    user -->|"Interacts with UI (Browser)"| frontend
+    frontend -->|"Queries peripherals, registers & code examples (REST/JSON)"| backend
+    backend -->|"Executes SQL queries & ORM commits (SQLAlchemy)"| database
 ```
 
 ---
@@ -169,28 +164,26 @@ C4Container
 Breaks down the internal components of both the FastAPI Backend and Streamlit Frontend containers.
 
 ```mermaid
-C4Component
-    title C4 Level 3: Component Diagram - FastAPI Backend & Streamlit Frontend
-
-    Container_Boundary(fe, "Streamlit Frontend Container")
-        Component(st_app, "Main Streamlit Runner", "frontend/app.py", "Coordinates page layout, title banner, and view mode routing.")
-        Component(st_sidebar, "Sidebar View", "frontend/views/sidebar.py", "Renders red brand header, hardware subsystem filter, and peripheral selector.")
-        Component(st_periph, "Peripheral View", "frontend/views/peripheral_view.py", "Renders hardware descriptions, registers table, and Arduino Mega pinout mapping.")
-        Component(st_code, "Code Viewer", "frontend/views/code_viewer.py", "Renders library requirement badges, toolchain notes, and syntax-highlighted code tabs.")
-        Component(api_client, "Frontend API Client", "frontend/controllers/api_client.py", "Manages HTTP requests to FastAPI with caching and offline fallback.")
+flowchart TD
+    subgraph Frontend["Streamlit Frontend Container (frontend/)"]
+        st_app["app.py<br/>(Main App Runner & Layout)"]
+        st_sidebar["views/sidebar.py<br/>(Subsystem & Peripheral Selector)"]
+        st_periph["views/peripheral_view.py<br/>(Hardware Details & Register Cards)"]
+        st_code["views/code_viewer.py<br/>(Register vs Library Code Viewer)"]
+        api_client["controllers/api_client.py<br/>(API Client Controller & Fallback)"]
     end
 
-    Container_Boundary(be, "FastAPI Backend Container")
-        Component(main_api, "API Application Router", "backend/app/main.py", "Lifespan startup management, CORS, root routing.")
-        Component(periph_ctrl, "Peripheral Controller", "backend/app/controllers/peripheral_controller.py", "Handles /api/v1/peripherals listing and slug lookups.")
-        Component(code_ctrl, "Code Controller", "backend/app/controllers/code_controller.py", "Handles /api/v1/codes searching and difficulty filtering.")
-        Component(health_ctrl, "Health Controller", "backend/app/controllers/health_controller.py", "Reports database status and content counts.")
-        Component(db_module, "Database Engine & Session", "backend/app/core/database.py", "SQLAlchemy connection pooling and session lifecycle.")
-        Component(models, "ORM Entities", "backend/app/models/peripheral.py", "SQLAlchemy declarations for database tables.")
-        Component(seed_module, "Seed Engine", "backend/app/seed/seed_data.py", "Populates all ATmega2560 peripherals and code examples.")
+    subgraph Backend["FastAPI Backend Container (backend/app/)"]
+        main_api["main.py<br/>(FastAPI App Router & CORS)"]
+        periph_ctrl["controllers/peripheral_controller.py<br/>(Peripheral Endpoints)"]
+        code_ctrl["controllers/code_controller.py<br/>(Code Search & Filter)"]
+        health_ctrl["controllers/health_controller.py<br/>(Health Status Endpoint)"]
+        db_module["core/database.py<br/>(Database Engine & Sessions)"]
+        models["models/peripheral.py<br/>(SQLAlchemy ORM Models)"]
+        seed_module["seed/seed_data.py<br/>(ATmega2560 Seed Data)"]
     end
 
-    ContainerDb(postgres, "PostgreSQL 16", "Database", "Stores normalized tables.")
+    database[("🗄️ Database<br/>(PostgreSQL 16 / SQLite)")]
 
     st_app --> api_client
     st_app --> st_sidebar
@@ -202,9 +195,10 @@ C4Component
     main_api --> health_ctrl
     periph_ctrl --> models
     code_ctrl --> models
+    health_ctrl --> db_module
     models --> db_module
     seed_module --> db_module
-    db_module --> postgres
+    db_module --> database
 ```
 
 ---
