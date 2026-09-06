@@ -1,0 +1,109 @@
+/* Custom Styles for Arduino codes made easy */
+
+/* Main Container Header */
+.main-title {
+    font-size: 2.3rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px;
+    margin-bottom: 0px !important;
+    color: #1E293B;
+}
+
+.sub-title {
+    font-size: 1.1rem !important;
+    font-weight: 500 !important;
+    color: #64748B;
+    margin-top: -5px !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Sidebar Branding Header */
+.sidebar-logo-card {
+    background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+    color: white !important;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
+}
+
+.sidebar-logo-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0;
+    color: #FFFFFF !important;
+}
+
+.sidebar-logo-subtitle {
+    font-size: 0.8rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-top: 4px;
+    color: #FEE2E2 !important;
+}
+
+/* Peripheral Info Card */
+.info-card {
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Library Alert Box */
+.library-box-native {
+    background: #F0FDF4;
+    border-left: 5px solid #22C55E;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 15px 0;
+    color: #166534;
+}
+
+.library-box-external {
+    background: #FFFBEB;
+    border-left: 5px solid #F59E0B;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 15px 0;
+    color: #92400E;
+}
+
+/* Badges */
+.badge-category {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    background-color: #EFF6FF;
+    color: #1D4ED8;
+    margin-right: 8px;
+}
+
+.badge-difficulty {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+/* Status Pill */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 16px;
+    background-color: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
