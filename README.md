@@ -22,27 +22,7 @@ Modern embedded development with Arduino often treats the microcontroller as a "
 
 The application covers all key architectural blocks illustrated in the ATmega2560 hardware block diagram:
 
-```
-+---------------------------------------------------------------------------------------------------+
-|                            ARDUINO MEGA 2560 MICROCONTROLLER ARCHITECTURE                         |
-|                                        (Microchip ATmega2560)                                     |
-+------------------------------------+-----------------------------+--------------------------------+
-|        SUPPORTING CIRCUITS         |    SERIAL COMMUNICATION     |    TIMERS/COUNTERS & PWM       |
-| - Clock Generation (16 MHz XTAL)   | - 4 Hardware USARTs (0-3)   | - Two 8-bit Timers (0, 2)      |
-| - Power Supervision (POR, BOD)     | - 1 SPI Serial Port         | - Four 16-bit Timers (1,3,4,5) |
-| - Watchdog Timer (128 kHz RC)      | - 1 TWI (I2C Philips comp.) | - 16 Hardware PWM Channels     |
-| - On-Chip Debug & JTAG             +-----------------------------+--------------------------------+
-+------------------------------------+      AVR CPU CORE (8-bit)   |       DIGITAL I/O PORTS        |
-|    ANALOG-TO-DIGITAL CONVERTER     | - 16 MHz RISC Architecture  | - 54 General Purpose I/O Pins  |
-| - 10-bit Resolution (1024 steps)   | - 32 GP Working Registers   | - 11 Ports: A, B, C, D, E,     |
-| - 16 Multiplexed Analog Inputs     | - 8-bit ALU & Data Bus      |             F, G, H, J, K, L   |
-| - Voltage Refs: 5V, 1.1V, 2.56V    +-----------------------------+ - Fast 62.5ns PIN/PORT toggling|
-+------------------------------------+    PROGRAM & DATA MEMORY    +--------------------------------+
-                                     | - 256 KB Flash Memory       |
-                                     | - 8 KB Internal SRAM        |
-                                     | - 4 KB Non-Volatile EEPROM  |
-                                     +-----------------------------+
-```
+![](./assets/atmega2560_architecture.jpg)
 
 ### 1. Serial Communication Block
 - **4 USARTs (`USART0` to `USART3`)**: Four independent hardware serial ports. `Serial` (USART0) is mapped to Pins 0/1 and connected to the onboard USB-to-serial converter. `Serial1` (Pins 19/18), `Serial2` (Pins 17/16), and `Serial3` (Pins 15/14) connect directly to external GPS, Bluetooth, ESP8266, and GSM modules simultaneously.
