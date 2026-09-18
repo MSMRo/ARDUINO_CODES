@@ -1,8 +1,9 @@
 import streamlit as st
 from typing import Dict, Any, List
+from frontend.controllers.mcu_catalog import REFERENCE_MCU
 
 
-def render_code_viewer(peripheral: Dict[str, Any]):
+def render_code_viewer(peripheral: Dict[str, Any], mcu: Dict[str, str]):
     """
     Render Arduino library requirements and practical Arduino code examples.
     """
@@ -12,6 +13,7 @@ def render_code_viewer(peripheral: Dict[str, Any]):
 
     libraries: List[Dict[str, Any]] = peripheral.get("libraries", [])
     code_examples: List[Dict[str, Any]] = peripheral.get("code_examples", [])
+    mcu_name = mcu.get("display_name", REFERENCE_MCU)
 
     st.divider()
 
@@ -21,11 +23,11 @@ def render_code_viewer(peripheral: Dict[str, Any]):
     requires_ext = details.get("requires_external_library", False)
     if not requires_ext:
         st.markdown(
-            """
+            f"""
             <div class="library-box-native">
                 <div style="font-weight: 700; font-size: 1.05rem;">✅ No External Library Required</div>
                 <div style="font-size: 0.92rem; margin-top: 4px;">
-                    This ATmega2560 peripheral is natively supported by the standard Arduino Core or the built-in AVR Libc runtime.
+                    This {mcu_name} peripheral is natively supported by the standard Arduino Core or the built-in AVR Libc runtime.
                     You do not need to install any external packages through the Library Manager to use this hardware feature.
                 </div>
             </div>

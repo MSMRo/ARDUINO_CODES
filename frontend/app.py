@@ -16,7 +16,7 @@ from frontend.views.architecture_view import render_block_diagram_view, render_m
 
 # Streamlit Page Configuration
 st.set_page_config(
-    page_title="Arduino codes made easy - ATmega2560",
+    page_title="Arduino codes made easy - AVR learning hub",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -34,11 +34,15 @@ def main():
     health_info = api_client.check_health()
     peripherals = api_client.get_peripherals()
 
+    # Render Sidebar navigation before the header so the active MCU context is available.
+    selected_slug, selected_mcu = render_sidebar(peripherals, health_info)
+    mcu_name = selected_mcu["display_name"]
+
     # Top Banner / Header matching required project title
     col_head, col_badge = st.columns([3, 1])
     with col_head:
         st.markdown('<h1 class="main-title">Arduino codes made easy</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-title">Interactive ATmega2560 Hardware Architecture & Code Learning Hub</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="sub-title">Interactive {selected_mcu["display_name"]} Hardware Architecture & Code Learning Hub</p>', unsafe_allow_html=True)
 
     with col_badge:
         db_stat = health_info.get("database", {}).get("status", "unknown")
@@ -57,36 +61,40 @@ def main():
             unsafe_allow_html=True
         )
 
-    # Render Sidebar navigation
-    selected_slug = render_sidebar(peripherals, health_info)
     view_mode = st.session_state.get("view_mode", "Peripheral Details & Code")
 
     # Routing based on View Mode
-    if view_mode == "ATmega2560 Block Diagram":
-        render_block_diagram_view()
+    if view_mode == "Architecture Block Diagram":
+        render_block_diagram_view(selected_mcu)
     elif view_mode == "System Architecture (MVC)":
         render_mvc_system_view()
     else:
         # Default Mode: Peripheral Details, Libraries, and Code Viewer
         if selected_slug:
             # Fetch detailed peripheral data via API Client Controller
-            peripheral_data = api_client.get_peripheral_detail(selected_slug)
+            peripheral_data = api_client.get_mcu_peripheral_detail(
+                selected_slug,
+                st.session_state.get("mcu_selector", "atmega2560"),
+            )
             if peripheral_data:
                 # 1. Hardware Description, Specs, Registers, and Pinout
-                render_peripheral_view(peripheral_data)
+                render_peripheral_view(peripheral_data, selected_mcu)
                 
                 # 2. Library Analysis & Arduino Code Examples
-                render_code_viewer(peripheral_data)
+                render_code_viewer(peripheral_data, selected_mcu)
             else:
                 st.error(f"Could not load details for peripheral '{selected_slug}'.")
         else:
             st.info("Select a peripheral from the sidebar to begin exploring.")
 
     # Global Code Search Box at footer
-    with st.expander("🔎 Quick Code Search across all ATmega2560 Peripherals"):
+    with st.expander(f"🔎 Quick Code Search across all {mcu_name} Peripherals"):
         search_query = st.text_input("Search keywords (e.g., 'Serial1', 'analogRead', 'Timer 1', 'OCR4A'):")
         if search_query:
-            results = api_client.search_codes(query=search_query)
+            results = api_client.search_codes(
+                query=search_query,
+                mcu_slug=st.session_state.get("mcu_selector", "atmega2560"),
+            )
             if results:
                 st.success(f"Found {len(results)} matching code example(s):")
                 for r in results:

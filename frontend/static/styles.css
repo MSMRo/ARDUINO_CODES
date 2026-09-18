@@ -107,3 +107,57 @@
     color: #065F46;
     border: 1px solid #A7F3D0;
 }
+
+/* Datasheet-inspired register diagrams */
+.datasheet-register {
+    border: 1px solid #334155;
+    background: #FFFFFF;
+    margin: 12px 0;
+}
+
+.datasheet-register-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px;
+    background: #F1F5F9;
+    border-bottom: 1px solid #334155;
+    color: #0F172A;
+}
+
+.datasheet-register-heading span {
+    color: #475569;
+    font-size: 0.82rem;
+}
+
+.datasheet-register-grid {
+    display: grid;
+}
+
+.datasheet-register-bit,
+.datasheet-register-field {
+    min-width: 0;
+    padding: 6px 3px;
+    text-align: center;
+    border-right: 1px solid #334155;
+    border-bottom: 1px solid #334155;
+    font-family: monospace;
+    font-size: 0.76rem;
+    overflow-wrap: anywhere;
+}
+
+.datasheet-register-bit {
+    background: #E2E8F0;
+    font-weight: 700;
+}
+
+.datasheet-register-field {
+    background: #FFFFFF;
+    font-weight: 600;
+}
+
+.datasheet-register-note {
+    padding: 7px 10px;
+    color: #475569;
+    font-size: 0.78rem;
+}

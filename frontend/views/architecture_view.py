@@ -1,17 +1,54 @@
 import os
 import streamlit as st
+from typing import Dict
 
 
-def render_block_diagram_view():
-    """Render ATmega2560 hardware architecture diagram and subsystem tour."""
-    st.markdown("## 📐 ATmega2560 Microcontroller Architecture")
-    st.markdown(
-        "Technical block diagram showing internal peripherals, buses, and memory spaces of the ATmega2560."
-    )
+def _render_target_architecture(mcu: Dict[str, str]) -> None:
+    st.markdown("### Target-specific block diagram")
+    st.caption("A compact datasheet-style view of the selected AVR's CPU, memory, buses, and peripheral blocks.")
+
+    with st.container(border=True):
+        st.markdown(f"#### {mcu.get('display_name', 'AVR')} internal architecture")
+        top_left, top_center, top_right = st.columns(3)
+        with top_left:
+            st.markdown("**Program memory**")
+            st.info(f"Flash\n\n{mcu.get('flash', 'Target-specific')}")
+        with top_center:
+            st.markdown("**AVR CPU core**")
+            st.success("8-bit RISC core\n\n32 working registers")
+        with top_right:
+            st.markdown("**Data memory**")
+            st.warning(f"SRAM\n\n{mcu.get('sram', 'Target-specific')}\n\nEEPROM {mcu.get('eeprom', 'Target-specific')}")
+
+        st.markdown("**System bus and control**")
+        st.code("CPU core  <->  data bus  <->  peripheral registers", language="text")
+
+        peripheral_cols = st.columns(4)
+        blocks = [
+            ("Serial", mcu.get("serial", "Target-specific USART")),
+            ("Timers / PWM", f"{mcu.get('timer_summary', 'Target-specific timers')}\n{mcu.get('pwm_summary', 'Target-specific PWM')}"),
+            ("ADC", mcu.get("adc_summary", "Target-specific ADC")),
+            ("I/O and interrupts", f"{mcu.get('gpio_summary', 'Target-specific GPIO')}\n{mcu.get('interrupt_summary', 'Target-specific interrupts')}"),
+        ]
+        for column, (title, value) in zip(peripheral_cols, blocks):
+            with column:
+                st.markdown(f"**{title}**")
+                st.container(border=True).write(value)
+
+        st.markdown(f"**Buses**: SPI on {mcu.get('spi_pins', 'target-specific pins')} | I2C/TWI on {mcu.get('i2c_pins', 'target-specific pins')}")
+
+
+def render_block_diagram_view(mcu: Dict[str, str]):
+    """Render the selected MCU architecture and subsystem tour."""
+    mcu_name = mcu.get("display_name", "ATmega2560")
+    st.markdown(f"## 📐 {mcu_name} Microcontroller Architecture")
+    st.markdown(mcu.get("description", "Target-specific AVR architecture overview."))
 
     image_path = "assets/atmega2560_architecture.jpg"
-    if os.path.exists(image_path):
+    if mcu_name == "ATmega2560" and os.path.exists(image_path):
         st.image(image_path, caption="ATmega2560 Microcontroller Architecture Technical Block Diagram", use_container_width=True)
+    elif mcu_name != "ATmega2560":
+        _render_target_architecture(mcu)
     else:
         st.warning("Architecture diagram image not found in assets/ folder.")
 
@@ -21,21 +58,20 @@ def render_block_diagram_view():
     with col1:
         with st.expander("📡 Serial Communication Block", expanded=True):
             st.markdown(
-                "- **4 Independent USARTs**: USART0 (USB/Pins 0-1), USART1 (19-18), USART2 (17-16), USART3 (15-14).\n"
-                "- **1 SPI Port**: High-speed synchronous bus on Pins 50 (MISO), 51 (MOSI), 52 (SCK), 53 (SS).\n"
-                "- **1 TWI / I2C**: Philips compatible 2-wire bus on Pins 20 (SDA) and 21 (SCL)."
+                f"- **Serial hardware**: {mcu.get('serial', 'Target-specific USART configuration')}.\n"
+                f"- **SPI Port**: High-speed synchronous bus on {mcu.get('spi_pins', 'target-specific SPI pins')}.\n"
+                f"- **TWI / I2C**: Philips compatible 2-wire bus on {mcu.get('i2c_pins', 'target-specific SDA/SCL pins')}."
             )
 
         with st.expander("⏱️ Timers/Counters & PWM Channels", expanded=True):
             st.markdown(
-                "- **Two 8-bit Timers**: Timer 0 (millis timebase) and Timer 2 (asynchronous RTC crystal support).\n"
-                "- **Four 16-bit Timers**: Timers 1, 3, 4, 5 with CTC and Input Capture.\n"
-                "- **16 Hardware PWM Channels**: Pins 2-13 and 44-46."
+                f"- **Timers/Counters**: {mcu.get('timer_summary', 'Target-specific timers')}.\n"
+                f"- **PWM**: {mcu.get('pwm_summary', 'Target-specific PWM channels')}."
             )
 
         with st.expander("📊 Analog-to-Digital Converter (ADC)", expanded=True):
             st.markdown(
-                "- **16 Multiplexed Channels**: Pins A0 to A15 (Ports F and K).\n"
+                f"- **Analog inputs**: {mcu.get('adc_summary', 'Target-specific ADC channels')}.\n"
                 "- **10-bit Resolution**: 1024 discrete steps (0 - 1023).\n"
                 "- **On-chip References**: 5V AVCC, 1.1V bandgap, 2.56V precision reference, and external AREF."
             )
@@ -43,17 +79,17 @@ def render_block_diagram_view():
     with col2:
         with st.expander("🎛️ Digital I/O Ports", expanded=True):
             st.markdown(
-                "- **54 Digital I/O Pins**: Grouped into 11 8-bit ports (A, B, C, D, E, F, G, H, J, K, L).\n"
+                f"- **Digital I/O**: {mcu.get('gpio_summary', 'Target-specific digital I/O')}.\n"
                 "- **Direct Port Access**: 1 clock cycle (62.5ns) single-instruction port toggling via `PINx` and `PORTx`."
             )
 
         with st.expander("🧠 AVR CPU Core & Memories", expanded=True):
             st.markdown(
-                "- **CPU**: 8-bit RISC AVR core operating at 16 MHz (16 MIPS).\n"
+                f"- **CPU**: 8-bit RISC AVR core.\n"
                 "- **32 Working Registers**: Single-cycle ALU execution.\n"
-                "- **Flash Memory**: 256 KB for program code.\n"
-                "- **SRAM**: 8 KB for runtime variables and call stack.\n"
-                "- **EEPROM**: 4 KB non-volatile memory."
+                f"- **Flash Memory**: {mcu.get('flash', 'Target-specific')} for program code.\n"
+                f"- **SRAM**: {mcu.get('sram', 'Target-specific')} for runtime variables and call stack.\n"
+                f"- **EEPROM**: {mcu.get('eeprom', 'Target-specific')} non-volatile memory."
             )
 
         with st.expander("🛡️ Supporting Circuits", expanded=True):

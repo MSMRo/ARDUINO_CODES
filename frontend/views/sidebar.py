@@ -1,24 +1,53 @@
 import streamlit as st
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+
+from frontend.controllers.mcu_catalog import MCU_PROFILES, MCU_SLUGS, REFERENCE_MCU, get_mcu_profile
 
 
-def render_sidebar(peripherals: List[Dict[str, Any]], health_info: Dict[str, Any]) -> str:
+def _remember_peripheral() -> None:
+    slug = st.session_state.get("peripheral_selector")
+    if not slug:
+        return
+
+    recent = [item for item in st.session_state.get("recent_peripherals", []) if item != slug]
+    st.session_state["recent_peripherals"] = [slug, *recent][:5]
+
+
+def _select_recent_peripheral(slug: str) -> None:
+    st.session_state["peripheral_selector"] = slug
+    _remember_peripheral()
+
+
+def render_sidebar(peripherals: List[Dict[str, Any]], health_info: Dict[str, Any]) -> Tuple[Optional[str], Dict[str, str]]:
     """
     Render sidebar navigation matching user's sketch (Image 2).
-    Returns the selected peripheral slug.
+    Returns the selected peripheral slug and MCU profile.
     """
+    st.session_state.setdefault("recent_peripherals", [])
+
     with st.sidebar:
+        selected_mcu_slug = st.selectbox(
+            "Select your ATmega",
+            options=MCU_SLUGS,
+            format_func=lambda slug: f"{MCU_PROFILES[slug]['display_name']} - {MCU_PROFILES[slug]['board_name']}",
+            key="mcu_selector",
+        )
+        selected_mcu = get_mcu_profile(selected_mcu_slug)
+
         # Top Logo Header with red theme matching user drawing
         st.markdown(
-            """
+            f"""
             <div class="sidebar-logo-card">
                 <div style="font-size: 2.2rem; margin-bottom: 2px;">⚡</div>
-                <div class="sidebar-logo-title">ARDUINO MEGA 2560</div>
+                <div class="sidebar-logo-title">{selected_mcu['board_name'].upper()}</div>
                 <div class="sidebar-logo-subtitle">Internal Peripheral Architecture</div>
             </div>
             """,
             unsafe_allow_html=True
         )
+
+        if selected_mcu_slug != "atmega2560":
+            st.caption(f"Shared learning reference: {REFERENCE_MCU}")
 
         st.markdown("### 🔌 Peripherals")
 
@@ -31,23 +60,44 @@ def render_sidebar(peripherals: List[Dict[str, Any]], health_info: Dict[str, Any
             filtered = [p for p in peripherals if p.get("category") == selected_cat]
 
         # Options for selection
-        options = [p["slug"] for p in filtered]
+        # Keep the memory map easy to find while preserving the backend order for everything else.
+        options = sorted(
+            [p["slug"] for p in filtered],
+            key=lambda slug: (slug != "memory", next(p.get("order_index", 0) for p in filtered if p["slug"] == slug)),
+        )
         format_func = lambda slug: next((f"{p.get('icon', '🔹')} {p['name'].split('(')[0].strip()}" for p in filtered if p["slug"] == slug), slug)
+
+        if options and st.session_state.get("peripheral_selector") not in options:
+            st.session_state["peripheral_selector"] = options[0]
 
         selected_slug = st.radio(
             "Select Hardware Module:",
             options=options,
             format_func=format_func,
-            index=0 if options else 0,
+            key="peripheral_selector",
+            on_change=_remember_peripheral,
             label_visibility="collapsed"
         )
+
+        recent_slugs = [slug for slug in st.session_state["recent_peripherals"] if slug in options]
+        if recent_slugs:
+            st.markdown("**Recently explored**")
+            for slug in recent_slugs:
+                peripheral = next(p for p in filtered if p["slug"] == slug)
+                st.button(
+                    f"{peripheral.get('icon', '🔹')} {peripheral['name'].split('(')[0].strip()}",
+                    key=f"recent_{slug}",
+                    on_click=_select_recent_peripheral,
+                    args=(slug,),
+                    width="stretch",
+                )
 
         st.divider()
 
         # System Architecture Quick Toggle
         view_mode = st.radio(
             "View Mode:",
-            ["Peripheral Details & Code", "ATmega2560 Block Diagram", "System Architecture (MVC)"],
+            ["Peripheral Details & Code", "Architecture Block Diagram", "System Architecture (MVC)"],
             index=0
         )
         st.session_state["view_mode"] = view_mode
@@ -83,4 +133,4 @@ def render_sidebar(peripherals: List[Dict[str, Any]], health_info: Dict[str, Any
 
         st.caption("MVC Model: Streamlit + FastAPI + DB")
 
-    return selected_slug
+    return selected_slug, selected_mcu

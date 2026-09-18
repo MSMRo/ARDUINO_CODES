@@ -53,8 +53,16 @@ class ArduinoAPIClient:
         # Fallback
         return self._get_fallback_detail(slug)
 
-    def search_codes(self, query: str = "", difficulty: str = "") -> List[Dict[str, Any]]:
+    def get_mcu_peripheral_detail(self, slug: str, mcu_slug: str) -> Optional[Dict[str, Any]]:
+        """Fetch shared peripheral data and adapt it to the selected MCU."""
+        from frontend.controllers.mcu_catalog import adapt_peripheral
+
+        peripheral = self.get_peripheral_detail(slug)
+        return adapt_peripheral(peripheral, mcu_slug) if peripheral else None
+
+    def search_codes(self, query: str = "", difficulty: str = "", mcu_slug: str = "atmega2560") -> List[Dict[str, Any]]:
         """Search code examples."""
+        from frontend.controllers.mcu_catalog import adapt_peripheral
         try:
             params = {}
             if query:
@@ -63,7 +71,7 @@ class ArduinoAPIClient:
                 params["difficulty"] = difficulty
             r = requests.get(f"{self.base_url}/codes", params=params, timeout=self.timeout)
             if r.status_code == 200:
-                return r.json()
+                return [adapt_peripheral(result, mcu_slug) for result in r.json()]
         except Exception:
             pass
         return []
